@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "exclude": ["node_modules", "c:/Users/86173/Desktop/Parking-Backend/SmartParking-main/Web/dist"]
+}
