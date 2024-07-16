@@ -21,7 +21,7 @@
             </a-menu-item>
             <a-menu-item key="notice">
                 <NotificationOutlined style="font-size:20px" />
-                <span>公告发布</span>
+                <span>通知发布</span>
             </a-menu-item>
         </a-menu>
     </a-layout-sider>

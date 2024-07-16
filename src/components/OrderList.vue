@@ -1,5 +1,5 @@
 <template>
-    <div class="cardStyle">
+    <div style="margin: 15px;">
         <a-row justify="space-between">
             <a-col :span="6">
                 <a-space>
@@ -11,10 +11,10 @@
                     </a-button>
                 </a-space>
             </a-col>
-            <a-col :span="6" style="text-align: end;">
+            <a-col :span="10" style="text-align: center;">
                 <a-space>
                     <a-input-search v-model:value="searchParam.content" placeholder="请输入用户名/车牌号/起止时间" enter-button
-                        allowClear bordered @search="searchOrder">
+                        allowClear bordered @search="getOrderList">
                         <template #addonBefore>
                             <a-select placeholder="搜索关键字" @change="SearchKeyChange"
                                 style="background-color: rgba(255,255,255,0.3);border-radius: 5px;min-width: 100px;">
@@ -25,6 +25,13 @@
                             </a-select>
                         </template>
                     </a-input-search>
+                    <a-select placeholder="请选择订单状态" style="min-width: 100px;text-align: center;" @change="searchStatus">
+                        <a-select-option value="" style="text-align: center;">全部订单</a-select-option>
+                        <a-select-option value="0" style="text-align: center;">未开始</a-select-option>
+                        <a-select-option value="1" style="text-align: center;">进行中</a-select-option>
+                        <a-select-option value="2" style="text-align: center;">待支付</a-select-option>
+                        <a-select-option value="3" style="text-align: center;">已完成</a-select-option>
+                    </a-select>
                 </a-space>
             </a-col>
             <!-- 排序框 -->
@@ -36,8 +43,9 @@
                     </a-select>
                     <a-select placeholder="请选择排序关键字" style="width: 160px;text-align: center;" @change="ColChange">
                         <a-select-option value="id" style="text-align: center;">ID (默认)</a-select-option>
-                        <a-select-option value="user" style="text-align: center;">用户名</a-select-option>
+                        <a-select-option value="user_name" style="text-align: center;">用户名</a-select-option>
                         <a-select-option value="plate" style="text-align: center;">车牌号</a-select-option>
+                        <a-select-option value="spot" style="text-align: center;">停车位</a-select-option>
                         <a-select-option value="amount" style="text-align: center;">总额</a-select-option>
                         <a-select-option value="duration" style="text-align: center;">停车时长</a-select-option>
                         <a-select-option value="begin_time" style="text-align: center;">开始时间</a-select-option>
@@ -50,13 +58,13 @@
         <!-- 操作框 -->
         <a-row style="margin: 10px 0;">
             <a-table rowKey="id" :columns="columns" :pagination="pagination" :dataSource="orderlist" bordered
-                @change="handleTableChange" style="overflow-x: auto;">
+                @change="handleTableChange" style="overflow-x: auto; width: 100%;">
                 <template #bodyCell="{ column, record }">
                     <template v-if="column.key === col">
                         <span style="font-weight: bold; font-weight: bold;">{{ record[column.key] }}</span>
                     </template>
                     <template v-if="column.key === 'action'">
-                        <div class="actionSlot">
+                        <div style="display: flex; justify-content: center;">
                             <a-button type="primary" style="margin-right: 15px" @click="editOrder(record.id)">
                                 <EditOutlined />编辑
                             </a-button>
@@ -64,6 +72,12 @@
                                 <DeleteOutlined />删除
                             </a-button>
                         </div>
+                    </template>
+                    <template v-if="column.key === 'status'">
+                        <span v-if="record.status == 0">未开始</span>
+                        <span v-else-if="record.status == 1">进行中</span>
+                        <span v-else-if="record.status == 2">待支付</span>
+                        <span v-else-if="record.status == 3">已完成</span>
                     </template>
                 </template>
             </a-table>
@@ -177,23 +191,26 @@
         <!-- 价格调整区域 -->
         <a-modal closable title="价格调整" :open="changePriceVisible" width="60%" @ok="changePriceOk"
             @cancel="changePriceCancel" destroyOnClose>
-            <p style="font-size: 16px;">请设置不同时间段的单价, 注意时间格式为00:00:00</p>
+            <p style="font-size: 16px;">请设置全天不同时间段的单价, 注意时间格式为时:分:秒</p>
             <a-form :model="price" ref="changePriceRef">
                 <a-row v-for="(item, index) in price" :key="index">
+                    <a-col :span="1" style="text-align: center;">
+                        <MinusCircleOutlined @click="removePrice(index)" />
+                    </a-col>
                     <a-col :span="8">
-                        <a-form-item label="开始时间" :name="'begin' + index">
+                        <a-form-item label="开始时间" name="'begin'+index">
                             <a-input v-model:value="item.begin">
                             </a-input>
                         </a-form-item>
                     </a-col>
                     <a-col :offset="1" :span="8">
-                        <a-form-item label="结束时间" :name="'end' + index">
+                        <a-form-item label="结束时间" name="'end'+index">
                             <a-input v-model:value="item.end">
                             </a-input>
                         </a-form-item>
                     </a-col>
-                    <a-col :offset="1" :span="6">
-                        <a-form-item label="价格" :name="'price' + index">
+                    <a-col :offset="1" :span="5">
+                        <a-form-item label="价格" name="'price'+index">
                             <a-input v-model:value="item.price">
                                 <template #prefix>
                                     <DollarCircleOutlined />
@@ -201,15 +218,19 @@
                             </a-input>
                         </a-form-item>
                     </a-col>
+  
                 </a-row>
             </a-form>
+            <a-button @click="addPrice">
+                <FileAddOutlined />新增时间段
+            </a-button>
         </a-modal>
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { FileAddOutlined, EditOutlined, DeleteOutlined, CarOutlined, InfoCircleOutlined, LockOutlined, DollarCircleOutlined, PayCircleOutlined } from '@ant-design/icons-vue'
+import { FileAddOutlined, EditOutlined, DeleteOutlined, CarOutlined, InfoCircleOutlined, LockOutlined, DollarCircleOutlined, PayCircleOutlined, MinusCircleOutlined } from '@ant-design/icons-vue'
 import { message, Modal } from 'ant-design-vue'
 import http from '../plugin/http'
 import qs from 'qs'
@@ -229,18 +250,15 @@ const neworder = reactive({
 })
 const orderInfo = reactive({
     id: '',
-    user: '',
+    user_name: '',
+    status: '',
     plate: '',
     price: '',
     begin_time: '',
     end_time: '',
+    spot: '',
 })
-const price = reactive([
-    { begin: '00:00:00', end: '05:59:59', price: 0.1 },
-    { begin: '06:00:00', end: '11:59:59', price: 0.1 },
-    { begin: '12:00:00', end: '17:59:59', price: 0.1 },
-    { begin: '18:00:00', end: '23:59:59', price: 0.1 }
-])
+const price = reactive([])
 // 表单验证规则
 const orderRules = {
     plate: [
@@ -284,9 +302,16 @@ const columns = [
         align: 'center',
     },
     {
+        title: '状态',
+        dataIndex: 'status',
+        key: 'status',
+        width: 200,
+        align: 'center',
+    },
+    {
         title: '用户名',
-        dataIndex: 'user',
-        key: 'user',
+        dataIndex: 'user_name',
+        key: 'user_name',
         width: 200,
         align: 'center',
     },
@@ -294,6 +319,13 @@ const columns = [
         title: '车牌号',
         dataIndex: 'plate',
         key: 'plate',
+        width: 200,
+        align: 'center',
+    },
+    {
+        title: '停车位',
+        dataIndex: 'spot',
+        key: 'spot',
         width: 200,
         align: 'center',
     },
@@ -328,7 +360,7 @@ const columns = [
     {
         title: '操作',
         key: 'action',
-        width: 400,
+        width: 200,
         align: 'center',
     },
 ];
@@ -359,6 +391,7 @@ const searchParam = reactive({
 async function getOrderList() {
     const { data: res1 } = await http.get('api/manage/order.query', {
         params: {
+            [searchParam.key]: searchParam.content,
             sort_column: col.value,
             sort: ord.value,
             off: queryParam.pagenum * queryParam.pagesize - queryParam.pagesize,
@@ -369,9 +402,10 @@ async function getOrderList() {
         message.error(res1.msg)
         return
     }
-    orderlist.value = res1.data.query
+    orderlist.value = res1.data.info
     const { data: res2 } = await http.get('api/manage/order.query', {
         params: {
+            [searchParam.key]: searchParam.content,
             no_data: 1
         },
     })
@@ -404,29 +438,15 @@ function OrdChange(value) {
     ord.value = value
     getOrderList()
 }
-// 搜索订单
-async function searchOrder() {
-    if (searchParam.content === '') {
-        getOrderList()
-        return
-    }
-    let data = qs.stringify({
-        [searchParam.key]: searchParam.content
-    })
-    const { data: res } = await http.post('api/manage/order.info', data)
-    if (res.status !== 0) {
-        message.error(res.msg)
-        return
-    }
-    orderlist.value = res.data.info
-    pagination.total = res.data.count
-    pagination.current = 1
-    pagination.pageSize = pagination.total
-
-}
 // 更改搜索关键字
 function SearchKeyChange(value) {
     searchParam.key = value
+}
+// 更改搜索状态
+function searchStatus(value) {
+    searchParam.key = 'status'
+    searchParam.content = value
+    getOrderList()
 }
 // 新增订单
 const addOrderOk = () => {
@@ -476,20 +496,18 @@ async function changePrice() {
         message.error(res.msg)
         return
     }
-    price = res.data.info
+    price.splice(0, price.length)
+    for (let i = 0; i < res.data.info.length; i++) {
+        price.push(res.data.info[i])
+    }
+}
+const removePrice = (index) => {
+    price.splice(index, 1)
+}
+const addPrice = () => {
+    price.push({ begin: '', end: '', price: '' })
 }
 const changePriceOk = () => {
-    //     POST /api/manage/price.modify
-
-    // Body: price=[
-    //     {'begin': '00:00:00', 'end': '05:59:59', 'price': 0.1},
-    //     {'begin': '06:00:00', 'end': '11:59:59', 'price': 0.1},
-    //     {'begin': '12:00:00', 'end': '17:59:59', 'price': 0.1},
-    //     {'begin': '18:00:00', 'end': '23:59:59', 'price': 0.1}
-    //     ]
-    // # 这里price=后面使用json格式
-
-    // Response: {"status": 0, "msg": "success", "data": null}
     let data = qs.stringify({
         price: JSON.stringify(price)
     })
@@ -500,8 +518,10 @@ const changePriceOk = () => {
         .then(response => {
             const res = response.data
             if (res.status !== 0) {
-                throw new Error(res.msg)
+                message.error(res.msg + ' 价格调整失败')
+                return  
             }
+            console.log(res)
             changePriceRef.value.resetFields()
             changePriceVisible.value = false
             message.success('价格调整成功')
@@ -594,13 +614,4 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.cardStyle {
-    margin: 15px;
-}
-
-.actionSlot {
-    display: flex;
-    justify-content: center;
-}
-</style>
+<style scoped></style>

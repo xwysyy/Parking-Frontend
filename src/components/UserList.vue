@@ -1,5 +1,5 @@
 <template>
-  <div class="cardStyle">
+  <div style="margin: 15px;">
     <a-row justify="space-between">
       <a-col :span="4">
         <a-button @click="addUserVisible = true">
@@ -45,13 +45,13 @@
     <!-- 操作框 -->
     <a-row style="margin: 10px 0;">
       <a-table rowKey="id" :columns="columns" :pagination="pagination" :dataSource="userlist" bordered
-        @change="handleTableChange" style="overflow-x: auto;">
+        @change="handleTableChange" style="overflow-x: auto; width: 100%;">
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === col">
             <span style="font-weight: bold; font-size: large;">{{ record[column.key] }}</span>
           </template>
           <template v-if="column.key === 'action'">
-            <div class="actionSlot">
+            <div style="display: flex; justify-content: center;">
               <a-button type="primary" style="margin-right: 15px" @click="editUser(record.id)">
                 <EditOutlined />编辑
               </a-button>
@@ -226,7 +226,6 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import dayjs from 'dayjs'
 import { EditOutlined, PhoneOutlined, DeleteOutlined, MailOutlined, InfoCircleOutlined, UserOutlined, LockOutlined, DollarCircleOutlined } from '@ant-design/icons-vue'
 import { message, Modal } from 'ant-design-vue'
 import http from '../plugin/http'
@@ -370,9 +369,6 @@ const columns = [
     dataIndex: 'register_time',
     key: 'register_time',
     width: 300,
-    customRender: ({ text }) => {
-      return dayjs(text).format('YYYY-MM-DD HH:mm:ss');
-    },
     align: 'center',
   },
   {
@@ -380,9 +376,6 @@ const columns = [
     dataIndex: 'last_login',
     key: 'last_login',
     width: 300,
-    customRender: ({ text }) => {
-      return dayjs(text).format('YYYY-MM-DD HH:mm:ss');
-    },
     align: 'center',
   },
   {
@@ -664,13 +657,4 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.cardStyle {
-  margin: 15px;
-}
-
-.actionSlot {
-  display: flex;
-  justify-content: center;
-}
-</style>
+<style scoped></style>

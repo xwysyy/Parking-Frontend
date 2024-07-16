@@ -49,7 +49,7 @@ const routes = [
         path: 'notice',
         component: () => import('../components/Notice.vue'),
         meta: {
-          title: '公告发布'
+          title: '通知发布'
         }
       },
     ]

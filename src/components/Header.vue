@@ -161,13 +161,9 @@ function clearCookie(name) {
 
 const loginOut = () => {
     http.get('api/manage/account.logout').then(res => {
-        if (res.data.status == 0) {
             clearCookie('SESSION')
             router.push('/login')
             location.reload()
-        }
-        else
-            message.error(res.data.msg)
     }).catch(error =>
         message.error('error.message'))
 }
