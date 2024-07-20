@@ -44,11 +44,12 @@
                 </a-row>
                 <a-row>
                     <a-form-item label="内容" name="content">
-                        <a-textarea v-model:value="newNotice.content" allow-clear  style="width: 600px;">
+                        <a-textarea v-model:value="newNotice.content" allow-clear style="width: 600px;">
                             <template #prefix>
                                 <FileAddOutlined />
                             </template>
                         </a-textarea>
+                        <div style="text-align: left; color: #999; font-size: 12px;">(上下拖动右下角可拉伸)</div>
                     </a-form-item>
                 </a-row>
                 <a-row>
@@ -77,6 +78,7 @@
                                 <FileAddOutlined />
                             </template>
                         </a-textarea>
+                        <div style="text-align: left; color: #999; font-size: 12px;">(上下拖动右下角可拉伸)</div>
                     </a-form-item>
                 </a-row>
                 <a-row>
