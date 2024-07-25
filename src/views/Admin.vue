@@ -21,6 +21,7 @@
 <script setup>
 import Nav from "../components/Nav.vue"
 import Footer from "../components/Footer.vue"
+import Header from "../components/Header.vue"
 import { useWindowSize } from '@vueuse/core';
 let windowSizeWidth = useWindowSize().width
 let windowSizeHeight = useWindowSize().height
